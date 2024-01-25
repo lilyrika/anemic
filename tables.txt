@@ -1,0 +1,21 @@
+# database.command("DROP TABLE IF EXISTS Artists")
+# database.command(
+#     """
+#     CREATE TABLE Artists(
+#     artistid INT PRIMARY KEY,
+#     name VARCHAR(64)
+#     )
+#     """
+# )
+
+# database.cursor.execute("DROP TABLE IF EXISTS Albums")
+# database.cursor.execute(
+#     """
+#     CREATE TABLE Albums(
+#     albumid INT PRIMARY KEY NOT NULL,
+#     name VARCHAR(64) NOT NULL,
+#     artist VARCHAR(64) NOT NULL,
+#     year INT
+#     )
+#     """
+# )
