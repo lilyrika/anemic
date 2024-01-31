@@ -2,8 +2,8 @@
 # database.command(
 #     """
 #     CREATE TABLE Artists(
-#     artistid INT PRIMARY KEY,
-#     name VARCHAR(64)
+#       artistid INT PRIMARY KEY,
+#       name VARCHAR(64)
 #     )
 #     """
 # )
@@ -12,10 +12,45 @@
 # database.cursor.execute(
 #     """
 #     CREATE TABLE Albums(
-#     albumid INT PRIMARY KEY NOT NULL,
-#     name VARCHAR(64) NOT NULL,
-#     artist VARCHAR(64) NOT NULL,
-#     year INT
+#       albumid INT PRIMARY KEY NOT NULL,
+#       name VARCHAR(64) NOT NULL,
+#       artist VARCHAR(64) NOT NULL,
+#       year INT
 #     )
 #     """
 # )
+
+database.cursor.execute("DROP TABLE IF EXISTS Ratings)
+database.cursor.execute(
+    """
+    CREATE TABLE Ratings(
+        ratingid INT PRIMARY KEY NOT NULL,
+        userid INT NOT NULL,
+        albumid INT NOT NULL,
+        rating INT NOT NULL
+    )
+    """
+)
+
+database.cursor.execute("DROP TABLE IF EXISTS Ratings)
+database.cursor.execute(
+    """
+    CREATE TABLE Ratings(
+        ratingid INT PRIMARY KEY NOT NULL,
+        userid INT NOT NULL,
+        albumid INT NOT NULL,
+        rating INT NOT NULL
+    )
+    """
+)
+
+database.cursor.execute("DROP TABLE IF EXISTS Users")
+database.cursor.execute(
+    """
+    CREATE TABLE Users(
+        userid INT PRIMARY KEY NOT NULL,
+        username VARCHAR(32) NOT NULL,
+        password VARCHAR(32) NOT NULL
+    )
+    """
+)

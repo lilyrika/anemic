@@ -4,33 +4,33 @@ class Database:
     def __init__(self):
         self.conn = sql.connect("database.db")
         self.cursor = self.conn.cursor()
-    
+
     def add_album(self, name, artist, year):
         command = """
         INSERT INTO Albums (albumid, name, artist, year)
-        SELECT MAX(albumid)+1, ?, ?, ? FROM Albums
+        SELECT MAX(albumid)+1, ?1, ?2, ?3 FROM Albums
+        WHERE NOT EXISTS (SELECT * FROM Genres WHERE name = ?1 AND artist = ?2 AND year = ?3)
         """
 
         self.cursor.execute(command, (name, artist, year))
         database.conn.commit()
     
     def add_genre(self, albumid, genre):
-        command = f"""
+        command = """
         INSERT INTO Genres (albumid, genre)
-        SELECT '{albumid}', '{genre}'
-        WHERE NOT EXISTS (SELECT * FROM Genres WHERE albumid = '{albumid}' AND genre = '{genre}')
+        SELECT ?1, ?2
+        WHERE NOT EXISTS (SELECT * FROM Genres WHERE albumid = ?1 AND genre = ?2)
         """
 
-        self.cursor.execute(command)
+        self.cursor.execute(command, (albumid, genre))
         database.conn.commit()
     
     def album_profile(self, name):
-        name = name.lower()
         command = """
         SELECT albumid, name, artist, year FROM Albums
         WHERE ? = LOWER(name)
         """
-        self.cursor.execute(command, (name,))
+        self.cursor.execute(command, (name.lower(),))
         album_data = self.cursor.fetchone()
 
         album_id = album_data[0]
@@ -49,15 +49,18 @@ class Database:
         print(*genre_list, sep=', ')
     
     def artist_profile(self, name):
-        name = name.lower()
-        command = """
-        SELECT name, year FROM Albums
-        WHERE LOWER(artist) = ?
-        """
+        command = "SELECT name, year FROM Albums WHERE LOWER(artist) = ?1 ORDER BY year"
+        self.cursor.execute(command, (name.lower(),))
+        albums = self.cursor.fetchall()
 
-        print(name)
-        self.cursor.execute(command, (name,))
-        print(self.cursor.fetchall())
+        command = "SELECT artist FROM Albums WHERE LOWER(artist) = ?1"
+        self.cursor.execute(command, (name.lower(),))
+        artist = self.cursor.fetchone()[0]
+
+        print(artist)
+        for album in albums:
+            print(*album, sep = " | ")
+        
 
 database = Database()
-database.artist_profile('weatherday')
+database.album_profile("for the first time")
