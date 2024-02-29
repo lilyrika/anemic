@@ -45,7 +45,7 @@ class Database:
         for genre_tuple in self.cursor.fetchall():
             genre_list.append(genre_tuple[0])
         
-        print(f"[{album_id}]\n{album_artist} - {album_name} ({year})")
+        print(f"{album_artist} - {album_name} ({year})")
         print(*genre_list, sep=', ')
     
     def artist_profile(self, name):
@@ -60,7 +60,30 @@ class Database:
         print(artist)
         for album in albums:
             print(*album, sep = " | ")
-        
+    
+    def genre_profile(self, genre):
+        command = "SELECT genre FROM Genres WHERE LOWER(genre) = ?1"
+        self.cursor.execute(command, (genre.lower(),))
+        genre_name = self.cursor.fetchone()[0]
+
+        command = """
+        SELECT DISTINCT name, artist, year FROM Albums
+        JOIN Genres
+        WHERE Genres.albumid = Albums.albumid AND LOWER(Genres.genre) = ?1
+        ORDER BY year, name
+        """
+
+        print(f"{genre_name}")
+        albums = self.cursor.execute(command, (genre.lower(),))
+        for album in albums:
+            print(*album, sep=' | ')
+    
+    def add_rating(self, albumid, rating):
+        pass
+
+    def update_ratings(self):
+        pass
 
 database = Database()
-database.album_profile("for the first time")
+
+database.update_ratings()
