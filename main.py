@@ -10,7 +10,7 @@ class Database:
         albumid INT,
         name VARCHAR(255),
         artist VARCHAR(255),
-        year VARCHAR(255),
+        year VARCHAR(255)
         )
         """
         self.cur.execute(command)
@@ -18,9 +18,12 @@ class Database:
         command = """
         CREATE TABLE IF NOT EXISTS Genres(
         albumid INT,
-        genre VARCHAR(255),
+        genre VARCHAR(255)
         )
         """
+        self.cur.execute(command)
+
+        self.conn.commit()
     
     def add_album(self, name, artist, year):
         command = """
@@ -39,8 +42,8 @@ class Database:
         WHERE ? = LOWER(name)
         """
 
-        self.cursor.execute(command, (name,))
-        album_data = self.cursor.fetchone() # Fetches album data if name matches
+        self.cur.execute(command, (name,))
+        album_data = self.cur.fetchone() # Fetches album data if name matches
 
         album_id = album_data[0]
         album_name = album_data[1]
@@ -49,12 +52,13 @@ class Database:
         # Creates variables for each data field to be displayed later
 
         command = "SELECT genre FROM Genres WHERE albumid = ?"
-        self.cursor.execute(command, (album_id,))
+        self.cur.execute(command, (album_id,))
         
         album_genres = []
-        for genre_tuple in self.cursor.fetchall():
+        for genre_tuple in self.cur.fetchall():
             album_genres.append(genre_tuple[0]) # Appends each genre with matching album ID to a list
         
+        print(album_id)
         print(f"{album_artist} - {album_name} ({year})")
         print(*album_genres, sep=', ')
 
@@ -65,8 +69,8 @@ class Database:
         WHERE LOWER(artist) = ?1 ORDER BY year
         """
 
-        self.cursor.execute(command, (name,))
-        albums = self.cursor.fetchall() # Fetches all albums under the artist's name and their release year
+        self.cur.execute(command, (name,))
+        albums = self.cur.fetchall() # Fetches all albums under the artist's name and their release year
 
         command = """
         SELECT artist 
@@ -74,8 +78,8 @@ class Database:
         WHERE LOWER(artist) = ?1
         """
 
-        self.cursor.execute(command, (name,))
-        artist = self.cursor.fetchone()[0] # Fetches the artist's name with correct capitalisation
+        self.cur.execute(command, (name,))
+        artist = self.cur.fetchone()[0] # Fetches the artist's name with correct capitalisation
 
         print(artist)
         for album in albums:
@@ -98,8 +102,8 @@ class Database:
         WHERE LOWER(genre) = ?1
         """
 
-        self.cursor.execute(command, (genre,))
-        genre_name = self.cursor.fetchone()[0]
+        self.cur.execute(command, (genre,))
+        genre_name = self.cur.fetchone()[0]
 
         command = """
         SELECT DISTINCT name, artist, year FROM Albums
@@ -109,8 +113,10 @@ class Database:
         """
 
         print(genre_name)
-        albums = self.cursor.execute(command, (genre,))
+        albums = self.cur.execute(command, (genre,))
         for album in albums:
             print(*album, sep=' | ')
 
 database = Database()
+database.add_album("You Won't Get What You Want", "Daughters", 2018)
+database.album_profile("you won't get what you want")
