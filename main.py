@@ -17,7 +17,8 @@ class Database:
 
         command = """
         CREATE TABLE IF NOT EXISTS Genres(
-        
+        albumid INT,
+        genre VARCHAR(255),
         )
         """
     
@@ -89,5 +90,27 @@ class Database:
 
         self.cur.execute(command, (albumid, genre))
         self.conn.commit()
+    
+    def genre_profile(self, genre):
+        command = """
+        SELECT genre 
+        FROM Genres 
+        WHERE LOWER(genre) = ?1
+        """
+
+        self.cursor.execute(command, (genre,))
+        genre_name = self.cursor.fetchone()[0]
+
+        command = """
+        SELECT DISTINCT name, artist, year FROM Albums
+        JOIN Genres
+        WHERE Genres.albumid = Albums.albumid AND LOWER(Genres.genre) = ?1
+        ORDER BY year, name
+        """
+
+        print(genre_name)
+        albums = self.cursor.execute(command, (genre,))
+        for album in albums:
+            print(*album, sep=' | ')
 
 database = Database()
