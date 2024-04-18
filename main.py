@@ -42,13 +42,13 @@ class Database:
         WHERE ? = LOWER(name)
         """
 
-        self.cur.execute(command, (name,))
+        self.cur.execute(command, (name.lower(),))
         album_data = self.cur.fetchone() # Fetches album data if name matches
 
         album_id = album_data[0]
         album_name = album_data[1]
         album_artist = album_data[2]
-        year = album_data[3]
+        album_year = album_data[3]
         # Creates variables for each data field to be displayed later
 
         command = "SELECT genre FROM Genres WHERE albumid = ?"
@@ -59,7 +59,9 @@ class Database:
             album_genres.append(genre_tuple[0]) # Appends each genre with matching album ID to a list
         
         print(album_id)
-        print(f"{album_artist} - {album_name} ({year})")
+        print(album_name)
+        print(album_artist)
+        print(album_year)
         print(*album_genres, sep=', ')
 
     def artist_profile(self, name):
@@ -69,7 +71,7 @@ class Database:
         WHERE LOWER(artist) = ?1 ORDER BY year
         """
 
-        self.cur.execute(command, (name,))
+        self.cur.execute(command, (name.lower(),))
         albums = self.cur.fetchall() # Fetches all albums under the artist's name and their release year
 
         command = """
@@ -78,7 +80,7 @@ class Database:
         WHERE LOWER(artist) = ?1
         """
 
-        self.cur.execute(command, (name,))
+        self.cur.execute(command, (name.lower(),))
         artist = self.cur.fetchone()[0] # Fetches the artist's name with correct capitalisation
 
         print(artist)
@@ -102,21 +104,21 @@ class Database:
         WHERE LOWER(genre) = ?1
         """
 
-        self.cur.execute(command, (genre,))
+        self.cur.execute(command, (genre.lower(),))
         genre_name = self.cur.fetchone()[0]
 
         command = """
         SELECT DISTINCT name, artist, year FROM Albums
         JOIN Genres
-        WHERE Genres.albumid = Albums.albumid AND LOWER(Genres.genre) = ?1
+        WHERE Genres.albumid = Albums.albumid AND Genres.genre = ?1
         ORDER BY year, name
         """
 
         print(genre_name)
-        albums = self.cur.execute(command, (genre,))
+        self.cur.execute(command, (genre_name,))
+        albums = self.cur.fetchall()
         for album in albums:
             print(*album, sep=' | ')
 
-database = Database()
-database.add_album("You Won't Get What You Want", "Daughters", 2018)
-database.album_profile("you won't get what you want")
+database = Database() 
+database.genre_profile("Alternative Rock")
