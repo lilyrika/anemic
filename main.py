@@ -118,6 +118,24 @@ class Database:
         albums = self.cur.fetchall()
         for album in albums:
             print(*album, sep=' | ')
+
+    def update_average(self, name):
+        command = """
+        SELECT AVG(rating)
+        FROM Ratings
+        WHERE name = ?1
+        """
+        self.cur.execute(command, (name,))
+        average = self.cur.fetchone()
+
+        command = """
+        UPDATE Albums
+        SET average_rating = ?2
+        WHERE name = ?1
+        """
+
+        self.cur.execute(command, (name, average))
+        self.conn.commit()
         
-database = Database() 
+database = Database()
 database.genre_profile("Alternative Rock")
