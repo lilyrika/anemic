@@ -107,7 +107,7 @@ class Database:
         genre_name = self.cur.fetchone()[0]
 
         command = """
-        SELECT DISTINCT name, artist, year FROM Albums
+        SELECT DISTINCT name, artist, year, average_rating FROM Albums
         JOIN Genres
         WHERE Genres.albumid = Albums.albumid AND Genres.genre = ?1
         ORDER BY year, name
@@ -118,6 +118,15 @@ class Database:
         albums = self.cur.fetchall()
         for album in albums:
             print(*album, sep=' | ')
+    
+    def add_rating(self, id, ratingid, rating):
+        command = """
+        INSERT INTO Ratings (id, ratingid, rating)
+        VALUES (?1, ?2, ?3)
+        """
+
+        self.cur.execute(command, (id, ratingid, rating))
+        self.conn.commit()
 
     def update_average(self, name):
         command = """
@@ -138,4 +147,5 @@ class Database:
         self.conn.commit()
         
 database = Database()
+database.add_rating()
 database.genre_profile("Alternative Rock")
