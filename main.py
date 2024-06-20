@@ -34,7 +34,6 @@ class Database:
 
         self.cur.execute(command, (name, artist, year)) # Adds album with parameters if album doesn't already exist
         self.conn.commit()
-    
 
     def album_profile(self, name):
         command = """
@@ -89,7 +88,7 @@ class Database:
 
     def add_genre(self, albumid, genre):
         command = """
-        INSERT INTO Genres (albumid, genre)
+        INSERT INTO Genres (albumid, genre) 
         SELECT ?1, ?2
         WHERE NOT EXISTS (SELECT * FROM Genres WHERE albumid = ?1 AND genre = ?2)
         """
@@ -114,11 +113,11 @@ class Database:
         ORDER BY year, name
         """
 
-        print(genre_name)
+        print(f"==== {genre_name} ====")
         self.cur.execute(command, (genre_name,))
         albums = self.cur.fetchall()
         for album in albums:
             print(*album, sep=' | ')
-
+        
 database = Database() 
 database.genre_profile("Alternative Rock")
