@@ -119,13 +119,13 @@ class Database:
         for album in albums:
             print(*album, sep=' | ')
     
-    def add_rating(self, id, ratingid, rating):
+    def add_rating(self, userid, albumid, ratingid, rating):
         command = """
-        INSERT INTO Ratings (id, ratingid, rating)
-        VALUES (?1, ?2, ?3)
+        INSERT INTO Ratings (userid, albumid, ratingid, rating)
+        VALUES (?1, ?2, ?3, ?4)
         """
 
-        self.cur.execute(command, (id, ratingid, rating))
+        self.cur.execute(command, (userid, albumid, ratingid, rating))
         self.conn.commit()
 
     def update_average(self, name):
@@ -147,5 +147,7 @@ class Database:
         self.conn.commit()
         
 database = Database()
-database.add_rating()
+database.add_rating(1, 1, )
 database.genre_profile("Alternative Rock")
+
+#change the database to include those columns
