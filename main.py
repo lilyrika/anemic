@@ -4,6 +4,7 @@ class Database:
     def __init__(self):
         self.conn = sql.connect("database.db")
         self.cur = self.conn.cursor()
+        self.chartcur = self.conn.cursor()
 
         command = """
         CREATE TABLE IF NOT EXISTS Albums(
@@ -131,21 +132,20 @@ class Database:
 
     def update_average(self, albumid):
         command = """
-        SELECT AVG(rating)
-        FROM Ratings
-        WHERE albumid = ?1
-        """
-        self.cur.execute(command, (albumid,))
-        average = self.cur.fetchone()[0]
-  
-        command = """
         UPDATE Albums
-        SET average_rating = ?2
+        SET average_rating = (SELECT AVG(rating) FROM Ratings WHERE albumid = ?1)
         WHERE albumid = ?1
         """
 
-        self.cur.execute(command, (albumid, average))
+        self.cur.execute(command, (albumid))
         self.conn.commit()
+    
+    def update_chart(self):
+        self.cur.execute("SELECT albumid FROM Albums")
+
+        for record in self.cur.fetchall():
+            self.update_average(record)
 
 database = Database()
-
+database.add_rating(1, 3, 9)
+database.update_chart()
