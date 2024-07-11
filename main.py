@@ -1,4 +1,5 @@
 import sqlite3 as sql
+from random import randint
 
 class Database:
     def __init__(self):
@@ -26,15 +27,31 @@ class Database:
 
         self.conn.commit()
     
-    def add_album(self, name, artist, year):
-        command = """
-        INSERT INTO Albums (albumid, name, artist, year)
-        SELECT MAX(albumid)+1, ?1, ?2, ?3 FROM Albums
-        WHERE NOT EXISTS (SELECT * FROM Albums WHERE name = ?1 AND artist = ?2 AND year = ?3)
-        """
+    def add_album(self, name, artist, year, one=False):
+        if one == False:
+            command = """
+            SELECT name, artist, year FROM Albums
+            WHERE name = ?1 AND artist = ?2 AND year = ?3
+            """
+            database.cur.execute(command, (name, artist, year))
 
-        self.cur.execute(command, (name, artist, year)) # Adds album with parameters if album doesn't already exist
-        self.conn.commit()
+            if database.cur.fetchone() == None:
+                command = """
+                INSERT INTO Albums (albumid, name, artist, year)
+                SELECT MAX(albumid)+1, ?1, ?2, ?3 FROM Albums
+                """
+
+                self.cur.execute(command, (name, artist, year)) # Adds album with parameters if album doesn't already exist
+                self.conn.commit()
+
+        else:
+            command = """
+            INSERT INTO Albums (albumid, name, artist, year)
+            VALUES(1, ?1, ?2, ?3)
+            """
+
+            self.cur.execute(command, (name, artist, year)) # Does the same thing but the albumid is 1
+            self.conn.commit()
 
     def album_profile(self, name):
         command = """
@@ -147,5 +164,22 @@ class Database:
             self.update_average(record)
 
 database = Database()
-database.add_rating(1, 3, 9)
+def cur(cmd): database.cur.execute(cmd)
+
+cur("DELETE FROM Albums")
+cur("DELETE FROM Ratings")
+cur("DELETE FROM Genres")
+database.add_album("Carrie & Lowell", "Sufjan Stevens", "2015", True)
+database.add_album("PetroDragonic Apocalypse", "King Gizzard & The Lizard Wizard", 2023)
+
+database.add_genre(1, "Indie Folk")
+database.add_genre(2, "Thrash Metal")
+database.add_genre(2, "Progressive Metal")
+
+database.add_rating(1, 1, 9)
+database.add_rating(1, 2, 10)
+
 database.update_chart()
+database.genre_profile("Indie Folk")
+database.genre_profile("Thrash Metal")
+
