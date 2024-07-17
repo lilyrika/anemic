@@ -150,7 +150,7 @@ class Database:
     def update_average(self, albumid):
         command = """
         UPDATE Albums
-        SET average_rating = (SELECT AVG(rating) FROM Ratings WHERE albumid = ?1)
+        SET average_rating = SELECT (AVG(rating) FROM Ratings WHERE albumid = ?1)
         WHERE albumid = ?1
         """
 
@@ -165,10 +165,13 @@ class Database:
 
 database = Database()
 def cur(cmd): database.cur.execute(cmd)
+def wipe():
+    cur("DELETE FROM Albums")
+    cur("DELETE FROM Ratings")
+    cur("DELETE FROM Genres")
 
-cur("DELETE FROM Albums")
-cur("DELETE FROM Ratings")
-cur("DELETE FROM Genres")
+##########
+
 database.add_album("Carrie & Lowell", "Sufjan Stevens", "2015", True)
 database.add_album("PetroDragonic Apocalypse", "King Gizzard & The Lizard Wizard", 2023)
 
