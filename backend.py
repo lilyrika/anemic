@@ -58,7 +58,7 @@ class Database:
 
     def album_profile(self, name):
         command = """
-        SELECT albumid, name, artist, year FROM Albums
+        SELECT albumid, name, artist, year, average_rating FROM Albums
         WHERE ? = LOWER(name)
         """
 
@@ -69,6 +69,7 @@ class Database:
         album_name = album_data[1]
         album_artist = album_data[2]
         album_year = album_data[3]
+        album_rating = album_data[4]
         # Creates variables for each data field to be displayed later
 
         command = "SELECT genre FROM Genres WHERE albumid = ?"
@@ -78,11 +79,10 @@ class Database:
         for genre_tuple in self.cur.fetchall():
             album_genres.append(genre_tuple[0]) # Appends each genre with matching album ID to a list
         
-        print(album_id)
-        print(album_name)
-        print(album_artist)
-        print(album_year)
-        print(*album_genres, sep=', ') # Displays the data
+        print(f"{album_name} - {album_artist}")
+        print(album_rating)
+        print(*album_genres, sep=', ')
+        print(album_year) # Displays the data
 
     def artist_profile(self, name):
         command = """
