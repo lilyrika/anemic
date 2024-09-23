@@ -45,7 +45,7 @@ searchbar.place(x=165, y=13) # Places the searchbar next to the title
 
 def search():
     query = searchbar.get()
-    print(database.album_profile(query))
+    database.album_profile(query)
     # Retrieves the query from the searchbar and checks the database for the album, displaying the data in the terminal
 
 searchbutton = ttk.Button(root, text="Search", command=search)
