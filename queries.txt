@@ -1,4 +1,0 @@
-SELECT DISTINCT name, artist, year FROM Albums
-JOIN Genres
-WHERE Genres.albumid = Albums.albumid AND Genres.genre = 'Post-Rock'
-ORDER BY year, name
