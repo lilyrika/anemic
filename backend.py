@@ -1,5 +1,11 @@
 import mysql.connector
+import hashlib
 from random import randint
+
+class User:
+    def __init__(self):
+        pass
+    #work on this        
 
 class Database:
     def __init__(self):
@@ -10,6 +16,51 @@ class Database:
         cmd = "USE music;"
         self.cur.execute(cmd)
     
+    def register(self):
+        username = str(input("Enter username: "))
+        
+        password = ""
+        while len(password) <= 8:
+            password = str(input("Enter password: "))
+            if len(password) <= 8:
+                print("Password must be longer than 8 characters.") # Prompts the user for username and password
+        
+        bytes = password.encode('utf-8')
+        hash_object = hashlib.sha256(bytes)
+        hashed_password = hash_object.hexdigest() # Hashes the password
+
+        cmd = """
+        INSERT INTO Users (userid, username, password)
+        SELECT MAX(userid)+1, %s, %s FROM Users
+        """ # Adds the password to the database
+        
+        self.cur.execute(cmd, (username, hashed_password))
+        self.cnx.commit()
+
+        print("Account registered successfully")
+    
+    def login(self):
+        client_username = str(input("Enter username: "))
+        client_password = str(input("Enter password: "))
+
+        cmd = """
+        SELECT userid, username, password FROM Users
+        WHERE username = %s
+        """
+
+        bytes = client_password.encode('utf-8')
+        hash_object = hashlib.sha256(bytes)
+        client_hash = hash_object.hexdigest() # Hashes the password
+
+        self.cur.execute(cmd, (client_username,))
+        data = self.cur.fetchone()
+        user_id = data[0]
+        username = data[1]
+        server_hash = data[2]
+
+        if client_hash == server_hash:
+            return (user_id, username)
+
     def add_album(self, name, artist, year, one=False):
         if one == False:
             cmd = """
@@ -164,3 +215,6 @@ class Database:
 
         for record_id in self.cur.fetchall():
             self.update_average(record_id[0], record_id[0]) # Runs update_average() on every entry in the Albums table
+
+database = Database()
+database.login()

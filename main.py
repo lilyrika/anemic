@@ -5,12 +5,9 @@ from tkinter import ttk
 
 database = Database()
 
-def wipe():
-    database.cur.execute("DELETE FROM Albums")
-    database.cur.execute("DELETE FROM Ratings")
-    database.cur.execute("DELETE FROM Genres") # Wipes all the tables for debugging
-
-wipe()
+database.cur.execute("DELETE FROM Albums")
+database.cur.execute("DELETE FROM Ratings")
+database.cur.execute("DELETE FROM Genres") # Wipes all the tables for debugging
 
 database.add_album("Carrie & Lowell", "Sufjan Stevens", 2015, True)
 database.add_album("In The Aeroplane Over The Sea", "Neutral Milk Hotel", 1998)
