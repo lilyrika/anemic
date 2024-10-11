@@ -1,11 +1,6 @@
 import mysql.connector
 import hashlib
-from random import randint
-
-class User:
-    def __init__(self):
-        pass
-    #work on this        
+from random import randint  
 
 class Database:
     def __init__(self):
@@ -18,48 +13,66 @@ class Database:
     
     def register(self):
         username = str(input("Enter username: "))
-        
-        password = ""
-        while len(password) <= 8:
-            password = str(input("Enter password: "))
-            if len(password) <= 8:
-                print("Password must be longer than 8 characters.") # Prompts the user for username and password
-        
-        bytes = password.encode('utf-8')
-        hash_object = hashlib.sha256(bytes)
-        hashed_password = hash_object.hexdigest() # Hashes the password
 
         cmd = """
-        INSERT INTO Users (userid, username, password)
-        SELECT MAX(userid)+1, %s, %s FROM Users
-        """ # Adds the password to the database
-        
-        self.cur.execute(cmd, (username, hashed_password))
-        self.cnx.commit()
+        SELECT username
+        FROM users
+        WHERE username = %s
+        """
 
-        print("Account registered successfully")
+        self.cur.execute(cmd, (username,))
+        
+        if self.cur.fetchone() == None:
+            password = ""
+            while len(password) <= 8:
+                password = str(input("Enter password: "))
+                if len(password) <= 8:
+                    print("Password must be longer than 8 characters.") # Prompts the user for username and password
+            
+            bytes = password.encode('utf-8')
+            hash_object = hashlib.sha256(bytes)
+            hashed_password = hash_object.hexdigest() # Hashes the password
+
+            cmd = """
+            INSERT INTO Users (userid, username, password)
+            SELECT MAX(userid)+1, %s, %s FROM Users
+            """ # Adds the password to the database
+            
+            self.cur.execute(cmd, (username, hashed_password))
+            self.cnx.commit()
+
+            print("Account registered successfully")
+        else:
+            print("Username already exists")
     
     def login(self):
         client_username = str(input("Enter username: "))
         client_password = str(input("Enter password: "))
+
+        bytes = client_password.encode('utf-8')
+        hash_object = hashlib.sha256(bytes)
+        client_hash = hash_object.hexdigest() # Hashes the password
 
         cmd = """
         SELECT userid, username, password FROM Users
         WHERE username = %s
         """
 
-        bytes = client_password.encode('utf-8')
-        hash_object = hashlib.sha256(bytes)
-        client_hash = hash_object.hexdigest() # Hashes the password
-
         self.cur.execute(cmd, (client_username,))
         data = self.cur.fetchone()
-        user_id = data[0]
-        username = data[1]
-        server_hash = data[2]
+        
+        if data != None:
+            user_id = data[0]
+            username = data[1]
+            server_hash = data[2]
 
-        if client_hash == server_hash:
-            return (user_id, username)
+            if client_hash == server_hash:
+                self.user_id = user_id 
+                self.username = username
+            else:
+                print("Incorrect username/password")
+        else:
+            print("Incorrect username/password")
 
     def add_album(self, name, artist, year, one=False):
         if one == False:
@@ -200,21 +213,27 @@ class Database:
         self.cur.execute(cmd, (userid, albumid, rating))
         self.cnx.commit()
 
-    def update_average(self, albumid_one, albumid_two):
+    def update_average(self, albumid):
+        cmd = """
+        SELECT AVG(rating) 
+        FROM Ratings 
+        WHERE albumid = %s
+        """
+
+        self.cur.execute(cmd, (albumid,))
+        average_rating = self.cur.fetchone()[0]
+
         cmd = """
         UPDATE Albums
-        SET average_rating = (SELECT AVG(rating) FROM Ratings WHERE albumid = %s)
+        SET average_rating = %s
         WHERE albumid = %s
         """ # Finds the average of every rating with the matching album id, takes the mean, and updates the column for the album
 
-        self.cur.execute(cmd, (albumid_one, albumid_two))
+        self.cur.execute(cmd, (average_rating, albumid))
         self.cnx.commit()
     
     def update_chart(self):
         self.cur.execute("SELECT albumid FROM Albums")
 
         for record_id in self.cur.fetchall():
-            self.update_average(record_id[0], record_id[0]) # Runs update_average() on every entry in the Albums table
-
-database = Database()
-database.login()
+            self.update_average(record_id[0]) # Runs update_average() on every entry in the Albums table
