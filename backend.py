@@ -1,6 +1,5 @@
 import mysql.connector
 import hashlib
-from random import randint  
 
 class Database:
     def __init__(self):
@@ -153,23 +152,51 @@ class Database:
         for album in albums:
             print(*album, sep = " | ") # Displays the data
 
-    def add_genre(self, albumid, genre):
+    def add_genre(self, albumid, userid, genre, stars):
         cmd = """
-        SELECT albumid, genre
-        FROM Genres
-        WHERE albumid = %s AND genre = %s
+        SELECT albumid, userid, genre, stars
+        FROM Genre_Votes
+        WHERE albumid = %s AND userid = %s AND genre = %s AND stars = %s
         """
-        self.cur.execute(cmd, (albumid, genre))
+        self.cur.execute(cmd, (albumid, userid, genre, stars))
 
         if self.cur.fetchone() == None:
             cmd = """
-            INSERT INTO Genres 
-            VALUES (%s, %s) 
-            """ 
+            INSERT INTO Genre_Votes
+            VALUES (%s, %s, %s, %s)
+            """
 
-            self.cur.execute(cmd, (albumid, genre)) 
-            # Adds the new genre to the Genres table if it doesn't already exist
+            self.cur.execute(cmd, (albumid, userid, genre, stars)) 
+            # Adds the new genre to the Genre_Votes table if it doesn't already exist
+        else:
+            print("Vote already exists")
+
         self.cnx.commit()
+
+    def add_descriptor(self, albumid, userid, descriptor, stars):
+        cmd = """
+        SELECT albumid, userid, genre
+        FROM Descriptor_Votes
+        WHERE userid = %s AND albumid = %s AND descriptor = %s AND stars = %s
+        """
+        self.cur.execute(cmd, (albumid, userid, descriptor, stars))
+
+        if self.cur.fetchone() == None:
+            cmd = """
+            INSERT INTO Descriptor_Votes
+            VALUES (%s, %s, %s, %s)
+            """
+
+            self.cur.execute(cmd, (albumid, userid, descriptor, stars)) 
+            # Adds the new genre to the Genres table if it doesn't already exist
+        else:
+            print("Vote already exists")
+            
+        self.cnx.commit()
+    
+    def calculate_genre_votes(self, albumid, genre):
+        pass
+        # Checks a single genre then takes star totals
     
     def genre_profile(self, genre):
         cmd = """
