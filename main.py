@@ -7,18 +7,20 @@ database = Database()
 
 database.cur.execute("DELETE FROM Albums")
 database.cur.execute("DELETE FROM Ratings")
-database.cur.execute("DELETE FROM Genres") # Wipes all the tables for debugging
+database.cur.execute("DELETE FROM Genre_Votes")
+database.cur.execute("DELETE FROM Genre_Vote_Results")
+# Wipes all the tables for debugging
 
 database.add_album("Carrie & Lowell", "Sufjan Stevens", 2015, True)
 database.add_album("In The Aeroplane Over The Sea", "Neutral Milk Hotel", 1998)
 database.add_album("PetroDragonic Apocalypse", "King Gizzard & The Lizard Wizard", 2023)
 database.add_album("Diamond Jubilee", "Cindy Lee", 2024)
 
-database.add_genre(1, "Indie Folk")
-database.add_genre(2, "Indie Folk")
-database.add_genre(3, "Thrash Metal")
-database.add_genre(3, "Progressive Metal")
-database.add_genre(4, "Hypnagogic Pop")
+database.add_genre_vote(1, 1, "Indie Folk", True)
+database.add_genre_vote(2, 1, "Indie Folk", True)
+database.add_genre_vote(3, 1, "Thrash Metal", True)
+database.add_genre_vote(3, 1, "Progressive Metal", True)
+database.add_genre_vote(4, 1, "Hypnagogic Pop", True)
 
 database.add_rating(1, 1, 9)
 database.add_rating(1, 2, 10)
