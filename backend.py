@@ -231,15 +231,66 @@ class Database:
             self.cur.execute(cmd, (agreed, albumid, userid, genre))
 
         self.update_genre_result(albumid, genre)
-        
 
-    def add_descriptor(self, albumid, userid, descriptor, stars):
+    def update_descriptor_result(self, albumid, descriptor):
         cmd = """
-        SELECT albumid, userid, genre
+        SELECT COUNT(agreed)
         FROM Descriptor_Votes
-        WHERE userid = %s AND albumid = %s AND descriptor = %s AND stars = %s
+        WHERE albumid = %s AND descriptor = %s AND agreed = 1
         """
-        self.cur.execute(cmd, (albumid, userid, descriptor, stars))
+
+        self.cur.execute(cmd, (albumid, descriptor))
+        agrees = self.cur.fetchone()[0]
+
+        cmd = """
+        SELECT COUNT(agreed)
+        FROM Descriptor_Votes
+        WHERE albumid = %s AND descriptor = %s AND agreed = 0
+        """
+
+        self.cur.execute(cmd, (albumid, descriptor))
+        disagrees = self.cur.fetchone()[0]
+
+        if agrees > disagrees:
+            result = 1
+        else:
+            result = 0
+        
+        cmd = """
+        SELECT descriptor
+        FROM Descriptor_Vote_Results
+        WHERE albumid = %s AND descriptor = %s
+        """
+        
+        self.cur.execute(cmd, (albumid, descriptor))
+        if self.cur.fetchone() == None:
+            cmd = """
+            INSERT INTO Descriptor_Vote_Results
+            VALUES (%s, %s, %s)
+            """
+            self.cur.execute(cmd, (albumid, descriptor, result))
+        else:
+            cmd = """
+            UPDATE Descriptor_Vote_Results
+            SET agreed = %s
+            WHERE albumid = %s AND descriptor = %s
+            """
+            self.cur.execute(cmd, (result, albumid, descriptor))
+
+        self.cnx.commit()
+
+    def add_descriptor_vote(self, albumid, userid, descriptor, agreed):
+        if agreed == True:
+            agreed = 1
+        else:
+            agreed = 0
+
+        cmd = """
+        SELECT albumid, userid, descriptor, agreed
+        FROM Descriptor_Votes
+        WHERE albumid = %s AND userid = %s AND descriptor = %s AND agreed = %s
+        """
+        self.cur.execute(cmd, (albumid, userid, descriptor, agreed))
 
         if self.cur.fetchone() == None:
             cmd = """
@@ -247,16 +298,16 @@ class Database:
             VALUES (%s, %s, %s, %s)
             """
 
-            self.cur.execute(cmd, (albumid, userid, descriptor, stars)) 
-            # Adds the new genre to the Genres table if it doesn't already exist
+            self.cur.execute(cmd, (albumid, userid, descriptor, agreed)) 
         else:
-            print("Vote already exists")
-            
-        self.cnx.commit()
-    
+            cmd = """
+            UPDATE Descriptor_Votes
+            SET agreed = %s
+            WHERE albumid = %s AND userid = %s AND descriptor = %s
+            """
+            self.cur.execute(cmd, (agreed, albumid, userid, descriptor))
 
-
-        # Checks a single genre then takes star totals
+        self.update_genre_result(albumid, descriptor)
     
     def genre_profile(self, genre):
         cmd = """
