@@ -163,7 +163,7 @@ class Database:
         """
 
         self.cur.execute(cmd, (albumid, genre))
-        agrees = self.cur.fetchone()[0]
+        agrees = self.cur.fetchone()[0] # Gets amount of people that agree on an album being a certain genre
 
         cmd = """
         SELECT COUNT(agreed)
@@ -172,12 +172,12 @@ class Database:
         """
 
         self.cur.execute(cmd, (albumid, genre))
-        disagrees = self.cur.fetchone()[0]
+        disagrees = self.cur.fetchone()[0] # Gets amount of people that disagree on an album being a certain genre
 
         if agrees > disagrees:
             result = 1
         else:
-            result = 0
+            result = 0 # Sets agreed to True if there are more agree votes than disagree votes
         
         cmd = """
         SELECT genre
@@ -186,19 +186,20 @@ class Database:
         """
         
         self.cur.execute(cmd, (albumid, genre))
-        if self.cur.fetchone() == None:
+
+        if self.cur.fetchone() == None: # Checks if the genre already has already been proposed
             cmd = """
             INSERT INTO Genre_Vote_Results
             VALUES (%s, %s, %s)
             """
-            self.cur.execute(cmd, (albumid, genre, result))
+            self.cur.execute(cmd, (albumid, genre, result)) # Adds the genre proposal if it doesn't exist
         else:
             cmd = """
             UPDATE Genre_Vote_Results
             SET agreed = %s
             WHERE albumid = %s AND genre = %s
             """
-            self.cur.execute(cmd, (result, albumid, genre))
+            self.cur.execute(cmd, (result, albumid, genre)) # Updates the genre proposal to the result with the newly added vote
 
         self.cnx.commit()
 
@@ -206,7 +207,7 @@ class Database:
         if agreed == True:
             agreed = 1
         else:
-            agreed = 0
+            agreed = 0 # Changes True or False to 1 or 0 respectively
 
         cmd = """
         SELECT albumid, userid, genre, agreed
@@ -215,7 +216,7 @@ class Database:
         """
         self.cur.execute(cmd, (albumid, userid, genre, agreed))
 
-        if self.cur.fetchone() == None:
+        if self.cur.fetchone() == None: # Checks if the user's genre vote already exists
             cmd = """
             INSERT INTO Genre_Votes
             VALUES (%s, %s, %s, %s)
@@ -228,7 +229,7 @@ class Database:
             SET agreed = %s
             WHERE albumid = %s AND userid = %s AND genre = %s
             """
-            self.cur.execute(cmd, (agreed, albumid, userid, genre))
+            self.cur.execute(cmd, (agreed, albumid, userid, genre)) # Updates the user's vote if it already exists
 
         self.update_genre_result(albumid, genre)
 
@@ -240,7 +241,7 @@ class Database:
         """
 
         self.cur.execute(cmd, (albumid, descriptor))
-        agrees = self.cur.fetchone()[0]
+        agrees = self.cur.fetchone()[0] # Takes the amount of people who agree with the descriptor
 
         cmd = """
         SELECT COUNT(agreed)
@@ -249,12 +250,12 @@ class Database:
         """
 
         self.cur.execute(cmd, (albumid, descriptor))
-        disagrees = self.cur.fetchone()[0]
+        disagrees = self.cur.fetchone()[0] # Takes the amonut of people who disagree with the descriptor
 
         if agrees > disagrees:
             result = 1
         else:
-            result = 0
+            result = 0 # Sets agreed to True if it has more agree votes than disagree votes
         
         cmd = """
         SELECT descriptor
@@ -263,19 +264,19 @@ class Database:
         """
         
         self.cur.execute(cmd, (albumid, descriptor))
-        if self.cur.fetchone() == None:
+        if self.cur.fetchone() == None: # Checks if the descriptor already exists
             cmd = """
             INSERT INTO Descriptor_Vote_Results
             VALUES (%s, %s, %s)
             """
-            self.cur.execute(cmd, (albumid, descriptor, result))
+            self.cur.execute(cmd, (albumid, descriptor, result)) # Adds the descriptor if it doesn't already exist
         else:
             cmd = """
             UPDATE Descriptor_Vote_Results
             SET agreed = %s
             WHERE albumid = %s AND descriptor = %s
             """
-            self.cur.execute(cmd, (result, albumid, descriptor))
+            self.cur.execute(cmd, (result, albumid, descriptor)) # Updates the descriptor if it does exist
 
         self.cnx.commit()
 
@@ -283,16 +284,16 @@ class Database:
         if agreed == True:
             agreed = 1
         else:
-            agreed = 0
+            agreed = 0 # Sets True or False to 1 or 0 respectively
 
         cmd = """
         SELECT albumid, userid, descriptor, agreed
         FROM Descriptor_Votes
         WHERE albumid = %s AND userid = %s AND descriptor = %s AND agreed = %s
         """
-        self.cur.execute(cmd, (albumid, userid, descriptor, agreed))
+        self.cur.execute(cmd, (albumid, userid, descriptor, agreed)) 
 
-        if self.cur.fetchone() == None:
+        if self.cur.fetchone() == None: # Checks if the genre already exists
             cmd = """
             INSERT INTO Descriptor_Votes
             VALUES (%s, %s, %s, %s)
@@ -339,16 +340,22 @@ class Database:
         FROM Ratings
         WHERE userid = %s AND albumid = %s AND rating = %s
         """
-        self.cur.execute(cmd, (userid, albumid, rating))
+        self.cur.execute(cmd, (userid, albumid, rating)) # Checks if the user has already rated the album
 
         if self.cur.fetchone() == None:
             cmd = """
             INSERT INTO Ratings (userid, albumid, rating)
             SELECT %s, %s, %s
-            """ 
-            # Adds an entry to the Ratings database if the user hasn't already rated it
-
-        self.cur.execute(cmd, (userid, albumid, rating))
+            """
+            self.cur.execute(cmd, (userid, albumid, rating)) # Adds the rating if it doesn't already exist
+        else:
+            cmd = """
+            UPDATE Ratings
+            SET rating = %s
+            WHERE userid = %s AND albumid = %s
+            """
+            self.cur.execute(cmd, (rating, userid, albumid)) # Updates the rating if it does exist
+        
         self.cnx.commit()
 
     def update_average(self, albumid):
@@ -359,7 +366,7 @@ class Database:
         """
 
         self.cur.execute(cmd, (albumid,))
-        average_rating = self.cur.fetchone()[0]
+        average_rating = self.cur.fetchone()[0] # Takes the average of every rating for an album
 
         cmd = """
         UPDATE Albums

@@ -5,6 +5,16 @@ from tkinter import ttk
 
 database = Database()
 
+cmd = """
+INSERT INTO Genre_List (genre, parent1, parent2) 
+VALUES 
+    
+"""
+
+#add everything past hip hop and add metal to the database
+
+database.cur.execute(cmd)
+
 database.cur.execute("DELETE FROM Albums")
 database.cur.execute("DELETE FROM Ratings")
 database.cur.execute("DELETE FROM Genre_Votes")
