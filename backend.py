@@ -210,28 +210,38 @@ class Database:
             agreed = 0 # Changes True or False to 1 or 0 respectively
 
         cmd = """
-        SELECT albumid, userid, genre, agreed
-        FROM Genre_Votes
-        WHERE albumid = %s AND userid = %s AND genre = %s AND agreed = %s
+        SELECT genre
+        FROM Genres
+        WHERE LOWER(genre) = %s
         """
-        self.cur.execute(cmd, (albumid, userid, genre, agreed))
+        self.cur.execute(cmd,(genre.lower(),))
 
-        if self.cur.fetchone() == None: # Checks if the user's genre vote already exists
+        if self.cur.fetchone() != None: # Checks if the genre is in the list
             cmd = """
-            INSERT INTO Genre_Votes
-            VALUES (%s, %s, %s, %s)
+            SELECT albumid, userid, genre, agreed
+            FROM Genre_Votes
+            WHERE albumid = %s AND userid = %s AND genre = %s AND agreed = %s
             """
+            self.cur.execute(cmd, (albumid, userid, genre, agreed))
 
-            self.cur.execute(cmd, (albumid, userid, genre, agreed)) 
+            if self.cur.fetchone() == None: # Checks if the user's genre vote already exists
+                cmd = """
+                INSERT INTO Genre_Votes
+                VALUES (%s, %s, %s, %s)
+                """
+
+                self.cur.execute(cmd, (albumid, userid, genre, agreed)) 
+            else:
+                cmd = """
+                UPDATE Genre_Votes
+                SET agreed = %s
+                WHERE albumid = %s AND userid = %s AND genre = %s
+                """
+                self.cur.execute(cmd, (agreed, albumid, userid, genre)) # Updates the user's vote if it already exists
+
+            self.update_genre_result(albumid, genre)
         else:
-            cmd = """
-            UPDATE Genre_Votes
-            SET agreed = %s
-            WHERE albumid = %s AND userid = %s AND genre = %s
-            """
-            self.cur.execute(cmd, (agreed, albumid, userid, genre)) # Updates the user's vote if it already exists
-
-        self.update_genre_result(albumid, genre)
+            print(f"{genre} Genre doesn't exist")
 
     def update_descriptor_result(self, albumid, descriptor):
         cmd = """
@@ -287,28 +297,36 @@ class Database:
             agreed = 0 # Sets True or False to 1 or 0 respectively
 
         cmd = """
-        SELECT albumid, userid, descriptor, agreed
-        FROM Descriptor_Votes
-        WHERE albumid = %s AND userid = %s AND descriptor = %s AND agreed = %s
+        SELECT descriptor
+        FROM Descriptors
+        WHERE LOWER(descriptor) = %s
         """
-        self.cur.execute(cmd, (albumid, userid, descriptor, agreed)) 
+        self.cur.execute(cmd,(descriptor.lower(),))
 
-        if self.cur.fetchone() == None: # Checks if the genre already exists
+        if self.cur.fetchone() != None: # Checks if the genre is in the list
             cmd = """
-            INSERT INTO Descriptor_Votes
-            VALUES (%s, %s, %s, %s)
+            SELECT albumid, userid, descriptor, agreed
+            FROM Descriptor_Votes
+            WHERE albumid = %s AND userid = %s AND descriptor = %s AND agreed = %s
             """
-
             self.cur.execute(cmd, (albumid, userid, descriptor, agreed)) 
-        else:
-            cmd = """
-            UPDATE Descriptor_Votes
-            SET agreed = %s
-            WHERE albumid = %s AND userid = %s AND descriptor = %s
-            """
-            self.cur.execute(cmd, (agreed, albumid, userid, descriptor))
 
-        self.update_genre_result(albumid, descriptor)
+            if self.cur.fetchone() == None: # Checks if the genre already exists
+                cmd = """
+                INSERT INTO Descriptor_Votes
+                VALUES (%s, %s, %s, %s)
+                """
+
+                self.cur.execute(cmd, (albumid, userid, descriptor, agreed)) 
+            else:
+                cmd = """
+                UPDATE Descriptor_Votes
+                SET agreed = %s
+                WHERE albumid = %s AND userid = %s AND descriptor = %s
+                """
+                self.cur.execute(cmd, (agreed, albumid, userid, descriptor))
+
+            self.update_genre_result(albumid, descriptor)
     
     def genre_profile(self, genre):
         cmd = """

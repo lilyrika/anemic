@@ -18,9 +18,12 @@ database.add_album("Diamond Jubilee", "Cindy Lee", 2024)
 
 database.add_genre_vote(1, 1, "Indie Folk", True)
 database.add_genre_vote(2, 1, "Indie Folk", True)
+database.add_genre_vote(2, 1, "Indie Rock", True)
 database.add_genre_vote(3, 1, "Thrash Metal", True)
 database.add_genre_vote(3, 1, "Progressive Metal", True)
 database.add_genre_vote(4, 1, "Hypnagogic Pop", True)
+
+database.add_descriptor_vote(2, 1, 'sad', True)
 
 database.add_rating(1, 1, 9)
 database.add_rating(1, 2, 10)
