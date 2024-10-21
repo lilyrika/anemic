@@ -1,5 +1,8 @@
 import mysql.connector
 import hashlib
+from io import BytesIO
+from PIL import Image
+
 
 class Database:
     def __init__(self):
@@ -100,7 +103,7 @@ class Database:
             self.cur.execute(cmd, (name, artist, year)) # Adds album with parameters if album doesn't already exist, but the albumid is 1
             self.cnx.commit()
 
-    def album_profile(self, name):
+    def get_album_data(self, name):
         cmd = """
         SELECT albumid, name, artist, year, average_rating FROM Albums
         WHERE %s = LOWER(name)
@@ -124,15 +127,26 @@ class Database:
             self.cur.execute(cmd, (album_id,))
             
             album_genres = []
-            for genre_tuple in self.cur.fetchall():
-                album_genres.append(genre_tuple[0]) # Appends each genre with matching album ID to a list
+            for genre_list in self.cur.fetchall():
+                for genre_tuple in genre_list:
+                    album_genres.append(genre_tuple) # Appends each genre with matching album ID to a list
             
-            print(f"{album_name} - {album_artist}")
-            print(album_rating)
-            print(*album_genres, sep=', ')
-            print(album_year) # Displays the data
+            cmd = """
+            SELECT descriptor
+            FROM Descriptor_Vote_Results
+            WHERE albumid = %s AND agreed = 1
+            """
+            self.cur.execute(cmd, (album_id,))
 
-    def artist_profile(self, name):
+            album_descriptors = []
+            for descriptor_list in self.cur.fetchall():
+                for descriptor_tuple in descriptor_list:
+                    album_descriptors.append(descriptor_tuple)
+            
+            return [album_name, album_artist, album_rating, album_genres, album_descriptors, album_year]
+            # Returns all data necessary to displayed on the frontend
+
+    def get_artist_data(self, name):
         cmd = """
         SELECT name, year 
         FROM Albums 
@@ -151,9 +165,8 @@ class Database:
         self.cur.execute(cmd, (name.lower(),))
         artist = self.cur.fetchone()[0] # Fetches the artist's name with correct capitalisation
 
-        print(artist)
-        for album in albums:
-            print(*album, sep = " | ") # Displays the data
+        return [artist, albums]
+        # Returns all data necessary to displayed on the frontend
 
     def update_genre_result(self, albumid, genre):
         cmd = """
@@ -326,9 +339,20 @@ class Database:
                 """
                 self.cur.execute(cmd, (agreed, albumid, userid, descriptor))
 
-            self.update_genre_result(albumid, descriptor)
+            self.update_descriptor_result(albumid, descriptor)
     
-    def genre_profile(self, genre):
+    def upload_image(self, albumid, path):
+        blob = open(path, 'rb').read() # Converts the image at the file path to a blob
+        
+        cmd = """
+        INSERT INTO Images
+        VALUES (%s, %s)
+        """
+        self.cur.execute(cmd, (albumid, blob))
+
+        self.cnx.commit()
+
+    def get_genre_data(self, genre):
         cmd = """
         SELECT genre 
         FROM Genres 
@@ -347,10 +371,8 @@ class Database:
 
         self.cur.execute(cmd, (genre_name,))
         albums = self.cur.fetchall() # Selects every album that has a genre specified in the parameters
-
-        print(f"==== {genre_name} ====")
-        for album in albums:
-            print(*album, sep=' | ') # Displays the data
+        
+        return [genre_name, albums]
     
     def add_rating(self, userid, albumid, rating):
         cmd = """
