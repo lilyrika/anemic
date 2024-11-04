@@ -1,7 +1,7 @@
 import mysql.connector
 import hashlib
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageTk
 
 
 class Database:
@@ -105,7 +105,7 @@ class Database:
 
     def get_album_data(self, name):
         cmd = """
-        SELECT albumid, name, artist, year, average_rating FROM Albums
+        SELECT albumid, name, artist, year, average_rating, rating_count FROM Albums
         WHERE %s = LOWER(name)
         """
 
@@ -118,6 +118,7 @@ class Database:
             album_artist = album_data[2]
             album_year = album_data[3]
             album_rating = album_data[4]
+            album_rating_count = album_data[5]
             # Creates variables for each data field to be displayed later
 
             cmd = """
@@ -143,7 +144,7 @@ class Database:
                 for descriptor_tuple in descriptor_list:
                     album_descriptors.append(descriptor_tuple)
             
-            return [album_name, album_artist, album_rating, album_genres, album_descriptors, album_year]
+            return [album_name, album_artist, album_rating, album_genres, album_descriptors, album_year, album_rating_count]
             # Returns all data necessary to displayed on the frontend
 
     def get_artist_data(self, name):
@@ -342,7 +343,7 @@ class Database:
             self.update_descriptor_result(albumid, descriptor)
     
     def upload_image(self, albumid, path):
-        blob = open(path, 'rb').read() # Converts the image at the file path to a blob
+        blob =  open(path, 'rb').read() # Converts the image at the file path to a blob
         
         cmd = """
         INSERT INTO Images
@@ -351,6 +352,12 @@ class Database:
         self.cur.execute(cmd, (albumid, blob))
 
         self.cnx.commit()
+
+    def get_image(self, albumid):
+        cmd = """
+        """
+
+        render = ImageTk.PhotoImage(image)
 
     def get_genre_data(self, genre):
         cmd = """
@@ -415,6 +422,22 @@ class Database:
         """ # Finds the average of every rating with the matching album id, takes the mean, and updates the column for the album
 
         self.cur.execute(cmd, (average_rating, albumid))
+
+        cmd = """
+        SELECT COUNT(rating)
+        FROM Ratings
+        WHERE albumid = %s
+        """
+        self.cur.execute(cmd, (albumid,))
+        average_rating = self.cur.fetchone()[0] # Gets the number of ratings for an album
+
+        cmd = """
+        UPDATE Albums
+        SET rating_count = %s
+        WHERE albumid = %s
+        """
+        self.cur.execute(cmd, (average_rating, albumid)) # Sets album rating_count
+
         self.cnx.commit()
     
     def update_chart(self):

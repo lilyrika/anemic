@@ -17,6 +17,7 @@ database.add_album("PetroDragonic Apocalypse", "King Gizzard & The Lizard Wizard
 database.add_album("Diamond Jubilee", "Cindy Lee", 2024)
 database.add_album("Crumbling", "Mid-air Thief", 2018)
 database.add_album("IGOR", "Tyler, The Creator", 2019)
+database.add_album("The Ooz", "King Krule", 2017)
 
 database.add_genre_vote(1, 1, "Indie Folk", True)
 
@@ -34,6 +35,8 @@ database.add_genre_vote(5, 1, "Neo-Psychedelia", True)
 
 database.add_genre_vote(6, 1, "Neo-Soul", True)
 
+database.add_genre_vote(7, 1, "Art Rock", True)
+
 database.add_descriptor_vote(2, 1, 'sad', True)
 database.add_descriptor_vote(5, 1, "ethereal", True)
 
@@ -43,6 +46,7 @@ database.add_rating(1, 3, 10)
 database.add_rating(1, 4, 10)
 database.add_rating(1, 5, 10)
 database.add_rating(1, 6, 9)
+database.add_rating(1, 7, 10)
 
 database.update_chart()
 
@@ -62,13 +66,13 @@ def search(arg="None"):
 
     if table == "Album":
         data = database.get_album_data(query)
-        # Returns album_name, album_artist, album_rating, album_genres, album_descriptors, album_year
+        # Returns album_name, album_artist, album_rating, album_genres, album_descriptors, album_year, album_rating_count
 
         if data != None:
             title = tk.Label(text=f"{data[1]} - {data[0]} [{data[5]}]", font=("Bahnschrift", 16))
             title.place(x=10, y=50) # Places artist, title and year
 
-            rating = tk.Label(text=f"Rating: {data[2]}", font=("Bahnschrift", 12))
+            rating = tk.Label(text=f"Rating: {data[2]} from {data[6]} ratings", font=("Bahnschrift", 12))
             rating.place(x=10, y=90) # Places rating
 
             genres = tk.Label(text=f"Genres: {', '.join(data[3])}", font=("Bahnschrift", 12))
@@ -112,3 +116,4 @@ dropdown = ttk.OptionMenu(root, choice, *search_types)
 dropdown.place(x=607, y=11) # Places the dropdown menu for the user to select what category they want to search
 
 root.mainloop()
+
