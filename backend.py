@@ -144,7 +144,7 @@ class Database:
                 for descriptor_tuple in descriptor_list:
                     album_descriptors.append(descriptor_tuple)
             
-            return [album_name, album_artist, album_rating, album_genres, album_descriptors, album_year, album_rating_count]
+            return [album_id, album_name, album_artist, album_rating, album_genres, album_descriptors, album_year, album_rating_count]
             # Returns all data necessary to displayed on the frontend
 
     def get_artist_data(self, name):
@@ -346,18 +346,31 @@ class Database:
         blob =  open(path, 'rb').read() # Converts the image at the file path to a blob
         
         cmd = """
-        INSERT INTO Images
-        VALUES (%s, %s)
+        SELECT albumid
+        FROM Images
+        WHERE albumid = %s
         """
-        self.cur.execute(cmd, (albumid, blob))
+        self.cur.execute(cmd)
+
+        if self.cur.fetchone() == None: # Checks if the album already has an image
+            cmd = """
+            INSERT INTO Images
+            VALUES (%s, %s)
+            """
+            self.cur.execute(cmd, (albumid, blob)) # Adds the image to the table
 
         self.cnx.commit()
 
     def get_image(self, albumid):
         cmd = """
+        SELECT image
+        FROM images
+        WHERE albumid = %s
         """
+        self.cur.execute(cmd, (albumid,)) # Gets image blob corresponding to albumid 
 
-        render = ImageTk.PhotoImage(image)
+        image_blob = self.cur.fetchone()[0]
+        return image_blob # Returns blob
 
     def get_genre_data(self, genre):
         cmd = """
