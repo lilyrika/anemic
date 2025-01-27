@@ -54,7 +54,7 @@ database.add_rating(1, 4, 10)
 database.add_rating(1, 5, 10)
 database.add_rating(1, 6, 9)
 database.add_rating(1, 7, 10)
-database.add_rating(1, 8, 9)
+database.add_rating(1, 8, 10)
 
 database.update_chart()
 
@@ -104,14 +104,33 @@ def search(arg="None"):
         # Returns artist, albums
 
         if data != None:
-            pass
+            artist = tk.Label(text=f"{data[0]}", font=("Bahnschrift", 16))
+            artist.place(x=10, y=50) # Places artist, title and year
+            search_elements.append(artist)
+
+            y_value = 90
+            for album in data[1]:
+                album_label = tk.Label(text=f"{album[0]} [{album[1]}] ({album[2]} from {album[3]} ratings)", font=("Bahnschrift", 12))
+                album_label.place(x=10, y=y_value) # Places rating
+                search_elements.append(album_label)
+                y_value += 30
+                
 
     elif table == "Genre":
         data = database.get_genre_data(query)
         # Returns genre_name, albums
 
         if data != None:
-            pass
+            genre = tk.Label(text=f"{data[0]}", font=("Bahnschrift", 16))
+            genre.place(x=10, y=50)
+            search_elements.append(genre)
+
+            y_value = 90
+            for album in data[1]:
+                album_label = tk.Label(text=f"{album[0]} - {album[1]} [{album[2]}] ({album[3]} from {album[4]} rating)", font=("Bahnschrift", 12))
+                album_label.place(x=10, y=y_value) # Places rating
+                search_elements.append(album_label)
+                y_value += 30
 
     # Retrieves the query from the searchbar, checks choice for the table, then calls the appropriate function, displaying the data in the terminal
 

@@ -149,7 +149,7 @@ class Database:
 
     def get_artist_data(self, name):
         cmd = """
-        SELECT name, year 
+        SELECT name, year, average_rating, rating_count
         FROM Albums 
         WHERE LOWER(artist) = %s ORDER BY year
         """
@@ -383,9 +383,9 @@ class Database:
         genre_name = self.cur.fetchone()[0] # Retrieves genre from Genres table if it exists
 
         cmd = """
-        SELECT DISTINCT name, artist, year, average_rating FROM Albums
-        JOIN Genres
-        WHERE Genres.albumid = Albums.albumid AND Genres.genre = %s
+        SELECT DISTINCT name, artist, year, average_rating, rating_count FROM Albums
+        JOIN Genre_Vote_Results
+        WHERE Genre_Vote_Results.albumid = Albums.albumid AND Genre_Vote_Results.genre = %s
         ORDER BY year, name
         """
 
