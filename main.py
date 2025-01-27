@@ -154,7 +154,7 @@ def place_image(image_blob):
 
 searchbar = tk.Entry(root, width=60)
 searchbar.place(x=165, y=13) # Places the searchbar next to the title
-searchbar.bind('<Return>', search) # Makes it so if you press 
+searchbar.bind('<Return>', search) # Makes it so if you press Enter, it also calls the search function
 
 searchbutton = ttk.Button(root, text="Search", command=search)
 searchbutton.place(x=530, y=10) # Places the search button, which gets inputs from the searchbar

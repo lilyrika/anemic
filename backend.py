@@ -391,7 +391,7 @@ class Database:
 
         self.cur.execute(cmd, (genre_name,))
         albums = self.cur.fetchall() # Selects every album that has a genre specified in the parameters
-        
+
         return [genre_name, albums]
     
     def add_rating(self, userid, albumid, rating):
