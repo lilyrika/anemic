@@ -46,6 +46,7 @@ database.add_genre_vote(8, 1, "Alt-Country", True)
 
 database.add_descriptor_vote(2, 1, 'sad', True)
 database.add_descriptor_vote(5, 1, "ethereal", True)
+database.add_descriptor_vote(8, 1, "quirky", True)
 
 database.add_rating(1, 1, 9)
 database.add_rating(1, 2, 10)
@@ -99,6 +100,29 @@ def search(arg="None"):
             image_blob = database.get_image(data[0])
             place_image(image_blob)
 
+            ratings = [
+                1, # Default choice
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10
+            ]
+
+            rating_choice = tk.StringVar() # Creates a variable for the user's choice to be stored
+            rating_box = ttk.OptionMenu(root, rating_choice, *ratings) 
+            rating_box.place(x=10, y=389) # Places the dropdown menu for the user to select what rating they want to give to the album
+            search_elements.append(rating_box)
+
+            rate_button = ttk.Button(root, text="Rate", command=lambda:database.add_rating(database.user_id, data[0], rating_choice))
+            rate_button.place(x=32, y=388) # Places the rating button, which uses the dropdown as a parameter
+            search_elements.append(rate_button)
+
     elif table == "Artist":
         data = database.get_artist_data(query)
         # Returns artist, albums
@@ -141,20 +165,21 @@ def destroy_search():
         element.destroy() # Removes all elements created by the search
 
 def place_image(image_blob):
-    file_object = BytesIO(image_blob) # Converts blob to file object
-    image = Image.open(file_object) # Loads the image
+    if image_blob != None:
+        file_object = BytesIO(image_blob) # Converts blob to file object
+        image = Image.open(file_object) # Loads the image
 
-    resized_image = image.resize((200, 200)) # Resizes the image to 200x200
-    rendered_image = ImageTk.PhotoImage(resized_image) # Converts the opened resized image for display
+        resized_image = image.resize((200, 200)) # Resizes the image to 200x200
+        rendered_image = ImageTk.PhotoImage(resized_image) # Converts the opened resized image for display
 
-    img = tk.Label(image=rendered_image)
-    img.image = rendered_image # Sets the label's image to the rendered image
-    img.place(x=10, y=178) # Places image
-    search_elements.append(img) # Adds to the search_elements list
+        img = tk.Label(image=rendered_image)
+        img.image = rendered_image # Sets the label's image to the rendered image
+        img.place(x=10, y=178) # Places image
+        search_elements.append(img) # Adds to the search_elements list
 
 searchbar = tk.Entry(root, width=60)
 searchbar.place(x=165, y=13) # Places the searchbar next to the title
-searchbar.bind('<Return>', search) # Makes it so if you press Enter, it also calls the search function
+searchbar.bind('<Return>', search) # Makes it so if you press Enter, it also calls the search function  
 
 searchbutton = ttk.Button(root, text="Search", command=search)
 searchbutton.place(x=530, y=10) # Places the search button, which gets inputs from the searchbar

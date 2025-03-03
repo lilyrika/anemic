@@ -362,15 +362,21 @@ class Database:
         self.cnx.commit()
 
     def get_image(self, albumid):
-        cmd = """
-        SELECT image
-        FROM images
-        WHERE albumid = %s
-        """
-        self.cur.execute(cmd, (albumid,)) # Gets image blob corresponding to albumid 
+        try:
+            cmd = """
+            SELECT image
+            FROM images
+            WHERE albumid = %s
+            """
+            self.cur.execute(cmd, (albumid,)) # Gets image blob corresponding to albumid
+            image_blob = self.cur.fetchone()[0]
 
-        image_blob = self.cur.fetchone()[0]
-        return image_blob # Returns blob
+            if image_blob != None:
+                return image_blob
+            else:
+                return None
+        except TypeError:
+            print("Error: No image in database")
 
     def get_genre_data(self, genre):
         cmd = """
