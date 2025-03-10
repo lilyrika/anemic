@@ -71,7 +71,25 @@ title.place(x=10, y=10) # Places the title for the app onto the window
 
 search_elements = []
 
-def search(arg="None"):
+def open_login_window():
+    login_window = tk.Toplevel(root)
+    login_window.title("Register/Login")
+    login_window.geometry("640x480")
+
+def get_album_rating(albumid):
+        cmd = """
+        SELECT rating FROM Ratings
+        WHERE userid = %s AND albumid = %s
+        """
+        database.cur.execute(cmd, (database.user_id, albumid))
+        rating = database.cur.fetchone()[0]
+
+        if rating != None:
+            return rating
+        else:
+            return 0
+
+def search(userid):
     destroy_search()
     table = choice.get()
     query = searchbar.get()
@@ -100,8 +118,10 @@ def search(arg="None"):
             image_blob = database.get_image(data[0])
             place_image(image_blob)
 
+            rating = get_album_rating(database.userid, data[0])
+
             ratings = [
-                1, # Default choice
+                rating, # Default choice
                 1,
                 2,
                 3,
