@@ -8,6 +8,8 @@ class Database:
     def __init__(self):
         self.cnx = mysql.connector.connect(user="root", password="PowerApproaches", host="127.0.0.1")
         self.cur = self.cnx.cursor()
+        self.userid = ""
+        self.username = ""
         # Initialise connection to MySQL and creates cursor
 
         cmd = "USE music;"
@@ -64,12 +66,12 @@ class Database:
         data = self.cur.fetchone()
         
         if data != None:
-            user_id = data[0]
+            userid = data[0]
             username = data[1]
             server_hash = data[2]
 
             if client_hash == server_hash:
-                self.user_id = user_id 
+                self.userid = userid 
                 self.username = username
             else:
                 print("Incorrect username/password")

@@ -72,16 +72,17 @@ title.place(x=10, y=10) # Places the title for the app onto the window
 search_elements = []
 
 def open_login_window():
-    login_window = tk.Toplevel(root)
+    login_window = tk.Tk()
     login_window.title("Register/Login")
     login_window.geometry("640x480")
+    login_window.lift()
 
 def get_album_rating(albumid):
         cmd = """
         SELECT rating FROM Ratings
         WHERE userid = %s AND albumid = %s
         """
-        database.cur.execute(cmd, (database.user_id, albumid))
+        database.cur.execute(cmd, (database.userid, albumid))
         rating = database.cur.fetchone()[0]
 
         if rating != None:
@@ -89,7 +90,7 @@ def get_album_rating(albumid):
         else:
             return 0
 
-def search(userid):
+def search(none=None):
     destroy_search()
     table = choice.get()
     query = searchbar.get()
@@ -118,7 +119,7 @@ def search(userid):
             image_blob = database.get_image(data[0])
             place_image(image_blob)
 
-            rating = get_album_rating(database.userid, data[0])
+            rating = get_album_rating(data[0])
 
             ratings = [
                 rating, # Default choice
@@ -139,9 +140,12 @@ def search(userid):
             rating_box.place(x=10, y=389) # Places the dropdown menu for the user to select what rating they want to give to the album
             search_elements.append(rating_box)
 
-            rate_button = ttk.Button(root, text="Rate", command=lambda:database.add_rating(database.user_id, data[0], rating_choice))
+            rate_button = ttk.Button(root, text="Rate", command=lambda:database.add_rating(database.userid, data[0], rating_choice))
             rate_button.place(x=32, y=388) # Places the rating button, which uses the dropdown as a parameter
             search_elements.append(rate_button)
+
+            genre_bar = tk.Entry(root, width=30)
+            genre_bar.place(x=200, y=113)
 
     elif table == "Artist":
         data = database.get_artist_data(query)
@@ -215,5 +219,6 @@ choice = tk.StringVar() # Creates a variable for the user's choice to be stored
 dropdown = ttk.OptionMenu(root, choice, *search_types) 
 dropdown.place(x=607, y=11) # Places the dropdown menu for the user to select what category they want to search
 
-root.mainloop()
+open_login_window()
 
+root.mainloop()
