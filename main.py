@@ -122,9 +122,34 @@ def open_main_window():
                 genre_bar = tk.Entry(root, width=30)
                 genre_bar.place(x=685, y=55)
 
-                genre_button = ttk.Button(root, text="Propose", command=lambda: database.add_genre_vote(data[0], database.userid, genre_bar.get(), True))
-                genre_button.place(x=869, y=52)
-                
+                agree_button = ttk.Button(root, text="Agree", command=lambda: database.add_genre_vote(data[0], database.userid, genre_bar.get(), True))
+                agree_button.place(x=870, y=52)
+
+                disagree_button = ttk.Button(root, text="Disagree", command=lambda: database.add_genre_vote(data[0], database.userid, genre_bar.get(), False))
+                disagree_button.place(x=946, y=52)
+
+                cmd = "SELECT DISTINCT genre FROM Genre_Votes WHERE albumid = %s"
+                database.cur.execute(cmd, (data[0],))
+                tuple_proposals = database.cur.fetchall()
+                proposals = []
+                for tuple in tuple_proposals:
+                    proposals.append(tuple[0])
+
+                y_value = 78
+                for proposal in proposals:
+                    cmd = "SELECT COUNT(agreed) FROM Genre_Votes WHERE genre = %s AND agreed = 1 AND albumid = %s"
+                    database.cur.execute(cmd, (proposal, data[0]))
+                    agreed_votes = database.cur.fetchone()[0]
+
+                    cmd = "SELECT COUNT(agreed) FROM Genre_Votes WHERE genre = %s AND agreed = 0 AND albumid = %s"
+                    database.cur.execute(cmd, (proposal, data[0]))
+                    disagreed_votes = database.cur.fetchone()[0]
+
+                    proposal = tk.Label(text=f"{proposal} ({agreed_votes}|{disagreed_votes})", font=("Bahnschrift", 12))
+                    proposal.place(x=685, y=y_value)
+                    search_elements.append(proposal)
+                    y_value += 30
+
         elif table == "Artist":
             data = database.get_artist_data(query)
             # Returns artist, albums
