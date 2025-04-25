@@ -15,9 +15,7 @@ class Database:
         cmd = "USE music;"
         self.cur.execute(cmd)
     
-    def register(self):
-        username = str(input("Enter username: "))
-
+    def register(self, username):
         cmd = """
         SELECT username
         FROM users
@@ -378,7 +376,7 @@ class Database:
             else:
                 return None
         except TypeError:
-            print("Error: No image in database")
+            pass
 
     def get_genre_data(self, genre):
         cmd = """

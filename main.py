@@ -2,6 +2,8 @@ from backend import Database
 
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
+import hashlib
 from io import BytesIO
 from PIL import Image, ImageTk
 
@@ -61,164 +63,252 @@ database.update_chart()
 
 ###############
 
-root = tk.Tk()
-root.geometry("1280x720")
-root.configure(background="#0b0f14")
-root.title("Anemic") # Initialises the window and changes the background colour
+def open_main_window():
+    search_elements = []
+    def search(none=None, search_elements=search_elements):
+        destroy_search()
+        table = choice.get()
+        query = searchbar.get()
 
-title = tk.Label(root, text="Welcome to Anemic!", font="Bahnschrift", anchor="w")
-title.place(x=10, y=10) # Places the title for the app onto the window
+        if table == "Album":
+            data = database.get_album_data(query)
+            # Returns albumid, album_name, album_artist, album_rating, album_genres, album_descriptors, album_year, album_rating_count
 
-search_elements = []
+            if data != None:
+                title = tk.Label(text=f"{data[2]} - {data[1]} [{data[6]}]", font=("Bahnschrift", 16))
+                title.place(x=10, y=50) # Places artist, title and year
+                search_elements.append(title)
+
+                rating = tk.Label(text=f"Rating: {data[3]} from {data[7]} ratings", font=("Bahnschrift", 12))
+                rating.place(x=10, y=90) # Places rating
+                search_elements.append(rating)
+
+                genres = tk.Label(text=f"Genres: {', '.join(data[4])}", font=("Bahnschrift", 12))
+                genres.place(x=10, y=119) # Places genres
+                search_elements.append(genres)
+
+                descriptors = tk.Label(text=f"Descriptors: {', '.join(data[5])}", font=("Bahnschrift", 12))
+                descriptors.place(x=10, y=148) # Places descriptors
+                search_elements.append(descriptors)
+
+                image_blob = database.get_image(data[0])
+                place_image(image_blob)
+
+                rating = get_album_rating(data[0])
+
+                ratings = [
+                    rating, # Default choice
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                    10
+                ]
+
+                rating_choice = tk.StringVar() # Creates a variable for the user's choice to be stored
+                rating_box = ttk.OptionMenu(root, rating_choice, *ratings) 
+                rating_box.place(x=10, y=389) # Places the dropdown menu for the user to select what rating they want to give to the album
+                search_elements.append(rating_box)
+
+                rate_button = ttk.Button(root, text="Rate", command=lambda:database.add_rating(database.userid, data[0], rating_choice))
+                rate_button.place(x=32, y=388) # Places the rating button, which uses the dropdown as a parameter
+                search_elements.append(rate_button)
+
+                genre_bar = tk.Entry(root, width=30)
+                genre_bar.place(x=200, y=13)
+
+        elif table == "Artist":
+            data = database.get_artist_data(query)
+            # Returns artist, albums
+
+            if data != None:
+                artist = tk.Label(text=f"{data[0]}", font=("Bahnschrift", 16))
+                artist.place(x=10, y=50) # Places artist, title and year
+                search_elements.append(artist)
+
+                y_value = 90
+                for album in data[1]:
+                    album_label = tk.Label(text=f"{album[0]} [{album[1]}] ({album[2]} from {album[3]} ratings)", font=("Bahnschrift", 12))
+                    album_label.place(x=10, y=y_value) # Places rating
+                    search_elements.append(album_label)
+                    y_value += 30
+                    
+
+        elif table == "Genre":
+            data = database.get_genre_data(query)
+            # Returns genre_name, albums
+
+            if data != None:
+                genre = tk.Label(text=f"{data[0]}", font=("Bahnschrift", 16))
+                genre.place(x=10, y=50)
+                search_elements.append(genre)
+
+                y_value = 90
+                for album in data[1]:
+                    album_label = tk.Label(text=f"{album[0]} - {album[1]} [{album[2]}] ({album[3]} from {album[4]} rating)", font=("Bahnschrift", 12))
+                    album_label.place(x=10, y=y_value) # Places rating
+                    search_elements.append(album_label)
+                    y_value += 30
+
+        # Retrieves the query from the searchbar, checks choice for the table, then calls the appropriate function, displaying the data in the terminal
+
+    def destroy_search(search_elements=search_elements):
+        for element in search_elements:
+            element.destroy() # Removes all elements created by the search
+
+    def place_image(image_blob):
+        if image_blob != None:
+            file_object = BytesIO(image_blob) # Converts blob to file object
+            image = Image.open(file_object) # Loads the image
+
+            resized_image = image.resize((200, 200)) # Resizes the image to 200x200
+            rendered_image = ImageTk.PhotoImage(resized_image) # Converts the opened resized image for display
+
+            img = tk.Label(image=rendered_image)
+            img.image = rendered_image # Sets the label's image to the rendered image
+            img.place(x=10, y=178) # Places image
+            search_elements.append(img) # Adds to the search_elements list
+
+    def get_album_rating(albumid):
+            cmd = """
+            SELECT rating FROM Ratings
+            WHERE userid = %s AND albumid = %s
+            """
+            database.cur.execute(cmd, (database.userid, albumid))
+            rating = database.cur.fetchone()[0]
+
+            if rating != None:
+                return rating
+            else:
+                return 0
+
+    root = tk.Tk()
+    root.geometry("1280x720")
+    root.configure(background="#0b0f14")
+    root.title("Anemic") # Initialises the window and changes the background colour
+
+    title = tk.Label(root, text="Welcome to Anemic!", font="Bahnschrift", anchor="w")
+    title.place(x=10, y=10) # Places the title for the app onto the window
+
+    searchbar = tk.Entry(root, width=60)
+    searchbar.place(x=165, y=13) # Places the searchbar next to the title
+    searchbar.bind('<Return>', search) # Makes it so if you press Enter, it also calls the search function  
+
+    searchbutton = ttk.Button(root, text="Search", command=search)
+    searchbutton.place(x=530, y=10) # Places the search button, which gets inputs from the searchbar
+
+    search_types = [
+        "Album", # Default choice
+        "Album",
+        "Artist",
+        "Genre"
+    ]
+
+    choice = tk.StringVar() # Creates a variable for the user's choice to be stored
+    dropdown = ttk.OptionMenu(root, choice, *search_types) 
+    dropdown.place(x=607, y=11) # Places the dropdown menu for the user to select what category they want to search
+
+    root.mainloop()
 
 def open_login_window():
-    login_window = tk.Tk()
-    login_window.title("Register/Login")
-    login_window.geometry("640x480")
-    login_window.lift()
-
-def get_album_rating(albumid):
+    def register():
+        username = username_box.get() 
+        password = password_box.get() # Gets the user's entries from username and password boxes
+        
         cmd = """
-        SELECT rating FROM Ratings
-        WHERE userid = %s AND albumid = %s
+        SELECT username
+        FROM users
+        WHERE username = %s
         """
-        database.cur.execute(cmd, (database.userid, albumid))
-        rating = database.cur.fetchone()[0]
 
-        if rating != None:
-            return rating
-        else:
-            return 0
+        database.cur.execute(cmd, (username,))
+        
+        if database.cur.fetchone() == None:
+            if len(password) <= 8:
+                messagebox.showerror("Error", "Password must be longer than 8 characters.") # Gives error if under 9 characters
+            elif len(username) <= 3:
+                messagebox.showerror("Error", "Username must be longer than 3 characters.") # Gives error if under 4 characters
+            else:
+                bytes = password.encode('utf-8')
+                hash_object = hashlib.sha256(bytes)
+                hashed_password = hash_object.hexdigest() # Hashes the password
 
-def search(none=None):
-    destroy_search()
-    table = choice.get()
-    query = searchbar.get()
-
-    if table == "Album":
-        data = database.get_album_data(query)
-        # Returns albumid, album_name, album_artist, album_rating, album_genres, album_descriptors, album_year, album_rating_count
-
-        if data != None:
-            title = tk.Label(text=f"{data[2]} - {data[1]} [{data[6]}]", font=("Bahnschrift", 16))
-            title.place(x=10, y=50) # Places artist, title and year
-            search_elements.append(title)
-
-            rating = tk.Label(text=f"Rating: {data[3]} from {data[7]} ratings", font=("Bahnschrift", 12))
-            rating.place(x=10, y=90) # Places rating
-            search_elements.append(rating)
-
-            genres = tk.Label(text=f"Genres: {', '.join(data[4])}", font=("Bahnschrift", 12))
-            genres.place(x=10, y=119) # Places genres
-            search_elements.append(genres)
-
-            descriptors = tk.Label(text=f"Descriptors: {', '.join(data[5])}", font=("Bahnschrift", 12))
-            descriptors.place(x=10, y=148) # Places descriptors
-            search_elements.append(descriptors)
-
-            image_blob = database.get_image(data[0])
-            place_image(image_blob)
-
-            rating = get_album_rating(data[0])
-
-            ratings = [
-                rating, # Default choice
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
-            ]
-
-            rating_choice = tk.StringVar() # Creates a variable for the user's choice to be stored
-            rating_box = ttk.OptionMenu(root, rating_choice, *ratings) 
-            rating_box.place(x=10, y=389) # Places the dropdown menu for the user to select what rating they want to give to the album
-            search_elements.append(rating_box)
-
-            rate_button = ttk.Button(root, text="Rate", command=lambda:database.add_rating(database.userid, data[0], rating_choice))
-            rate_button.place(x=32, y=388) # Places the rating button, which uses the dropdown as a parameter
-            search_elements.append(rate_button)
-
-            genre_bar = tk.Entry(root, width=30)
-            genre_bar.place(x=200, y=113)
-
-    elif table == "Artist":
-        data = database.get_artist_data(query)
-        # Returns artist, albums
-
-        if data != None:
-            artist = tk.Label(text=f"{data[0]}", font=("Bahnschrift", 16))
-            artist.place(x=10, y=50) # Places artist, title and year
-            search_elements.append(artist)
-
-            y_value = 90
-            for album in data[1]:
-                album_label = tk.Label(text=f"{album[0]} [{album[1]}] ({album[2]} from {album[3]} ratings)", font=("Bahnschrift", 12))
-                album_label.place(x=10, y=y_value) # Places rating
-                search_elements.append(album_label)
-                y_value += 30
+                cmd = """
+                INSERT INTO Users (userid, username, password)
+                SELECT MAX(userid)+1, %s, %s FROM Users
+                """ # Adds the password to the database
                 
+                database.cur.execute(cmd, (username, hashed_password))
+                database.cnx.commit()
 
-    elif table == "Genre":
-        data = database.get_genre_data(query)
-        # Returns genre_name, albums
+                messagebox.showerror("Anemic", "Account registered successfully")
+        else:
+            messagebox.showerror("Error", "Username already exists") # Displays errors
 
+    def login():
+        client_username = username_box.get()
+        client_password = password_box.get()
+
+        bytes = client_password.encode('utf-8')
+        hash_object = hashlib.sha256(bytes)
+        client_hash = hash_object.hexdigest() # Hashes the password
+
+        cmd = """
+        SELECT userid, username, password FROM Users
+        WHERE username = %s
+        """
+
+        database.cur.execute(cmd, (client_username,))
+        data = database.cur.fetchone()
+        
         if data != None:
-            genre = tk.Label(text=f"{data[0]}", font=("Bahnschrift", 16))
-            genre.place(x=10, y=50)
-            search_elements.append(genre)
+            userid = data[0]
+            username = data[1]
+            server_hash = data[2]
 
-            y_value = 90
-            for album in data[1]:
-                album_label = tk.Label(text=f"{album[0]} - {album[1]} [{album[2]}] ({album[3]} from {album[4]} rating)", font=("Bahnschrift", 12))
-                album_label.place(x=10, y=y_value) # Places rating
-                search_elements.append(album_label)
-                y_value += 30
+            if client_hash == server_hash:
+                database.userid = userid 
+                database.username = username
+                login_window.destroy()
+            else:
+                messagebox.showerror("Error", "Incorrect username/password")
+        else:
+            messagebox.showerror("Error", "Incorrect username/password")
 
-    # Retrieves the query from the searchbar, checks choice for the table, then calls the appropriate function, displaying the data in the terminal
+    login_window = tk.Tk()
+    login_window.title("Anemic Login")
+    login_window.configure(background="#0b0f14")
+    login_window.geometry("270x160")
 
-def destroy_search():
-    global search_elements
+    login_title = tk.Label(login_window, text="Anemic", font="Bahnschrift", anchor="w")
+    login_title.place(x=91, y=10)
 
-    for element in search_elements:
-        element.destroy() # Removes all elements created by the search
+    username_label = tk.Label(login_window, text="Username")
+    username_label.place(x=10, y=50)
+    username_box = tk.Entry(login_window, width=30)
+    username_box.place(x=70, y=51)
 
-def place_image(image_blob):
-    if image_blob != None:
-        file_object = BytesIO(image_blob) # Converts blob to file object
-        image = Image.open(file_object) # Loads the image
+    password_label = tk.Label(login_window, text="Password")
+    password_label.place(x=13, y=80)
+    password_box = tk.Entry(login_window, width=30, show='*')
+    password_box.place(x=70, y=81)
 
-        resized_image = image.resize((200, 200)) # Resizes the image to 200x200
-        rendered_image = ImageTk.PhotoImage(resized_image) # Converts the opened resized image for display
+    register_button = ttk.Button(login_window, text="Register", command=register)
+    register_button.place(x=47, y=111)
 
-        img = tk.Label(image=rendered_image)
-        img.image = rendered_image # Sets the label's image to the rendered image
-        img.place(x=10, y=178) # Places image
-        search_elements.append(img) # Adds to the search_elements list
+    login_button = ttk.Button(login_window, text="Login", command=login)
+    login_button.place(x=127, y=111)
 
-searchbar = tk.Entry(root, width=60)
-searchbar.place(x=165, y=13) # Places the searchbar next to the title
-searchbar.bind('<Return>', search) # Makes it so if you press Enter, it also calls the search function  
+    login_window.mainloop()
 
-searchbutton = ttk.Button(root, text="Search", command=search)
-searchbutton.place(x=530, y=10) # Places the search button, which gets inputs from the searchbar
-
-search_types = [
-    "Album", # Default choice
-    "Album",
-    "Artist",
-    "Genre"
-]
-
-choice = tk.StringVar() # Creates a variable for the user's choice to be stored
-dropdown = ttk.OptionMenu(root, choice, *search_types) 
-dropdown.place(x=607, y=11) # Places the dropdown menu for the user to select what category they want to search
+logged_in = False
 
 open_login_window()
 
-root.mainloop()
+if database.username != "":
+    open_main_window()
