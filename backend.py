@@ -15,66 +15,66 @@ class Database:
         cmd = "USE music;"
         self.cur.execute(cmd)
     
-    def register(self, username):
-        cmd = """
-        SELECT username
-        FROM users
-        WHERE username = %s
-        """
+    # def register(self, username):
+    #     cmd = """
+    #     SELECT username
+    #     FROM users
+    #     WHERE username = %s
+    #     """
 
-        self.cur.execute(cmd, (username,))
+    #     self.cur.execute(cmd, (username,))
         
-        if self.cur.fetchone() == None:
-            password = ""
-            while len(password) <= 8:
-                password = str(input("Enter password: "))
-                if len(password) <= 8:
-                    print("Password must be longer than 8 characters.") # Prompts the user for username and password
+    #     if self.cur.fetchone() == None:
+    #         password = ""
+    #         while len(password) <= 8:
+    #             password = str(input("Enter password: "))
+    #             if len(password) <= 8:
+    #                 print("Password must be longer than 8 characters.") # Prompts the user for username and password
             
-            bytes = password.encode('utf-8')
-            hash_object = hashlib.sha256(bytes)
-            hashed_password = hash_object.hexdigest() # Hashes the password
+    #         bytes = password.encode('utf-8')
+    #         hash_object = hashlib.sha256(bytes)
+    #         hashed_password = hash_object.hexdigest() # Hashes the password
 
-            cmd = """
-            INSERT INTO Users (userid, username, password)
-            SELECT MAX(userid)+1, %s, %s FROM Users
-            """ # Adds the password to the database
+    #         cmd = """
+    #         INSERT INTO Users (userid, username, password)
+    #         SELECT MAX(userid)+1, %s, %s FROM Users
+    #         """ # Adds the password to the database
             
-            self.cur.execute(cmd, (username, hashed_password))
-            self.cnx.commit()
+    #         self.cur.execute(cmd, (username, hashed_password))
+    #         self.cnx.commit()
 
-            print("Account registered successfully")
-        else:
-            print("Username already exists")
+    #         print("Account registered successfully")
+    #     else:
+    #         print("Username already exists")
     
-    def login(self):
-        client_username = str(input("Enter username: "))
-        client_password = str(input("Enter password: "))
+    # def login(self):
+    #     client_username = str(input("Enter username: "))
+    #     client_password = str(input("Enter password: "))
 
-        bytes = client_password.encode('utf-8')
-        hash_object = hashlib.sha256(bytes)
-        client_hash = hash_object.hexdigest() # Hashes the password
+    #     bytes = client_password.encode('utf-8')
+    #     hash_object = hashlib.sha256(bytes)
+    #     client_hash = hash_object.hexdigest() # Hashes the password
 
-        cmd = """
-        SELECT userid, username, password FROM Users
-        WHERE username = %s
-        """
+    #     cmd = """
+    #     SELECT userid, username, password FROM Users
+    #     WHERE username = %s
+    #     """
 
-        self.cur.execute(cmd, (client_username,))
-        data = self.cur.fetchone()
+    #     self.cur.execute(cmd, (client_username,))
+    #     data = self.cur.fetchone()
         
-        if data != None:
-            userid = data[0]
-            username = data[1]
-            server_hash = data[2]
+    #     if data != None:
+    #         userid = data[0]
+    #         username = data[1]
+    #         server_hash = data[2]
 
-            if client_hash == server_hash:
-                self.userid = userid 
-                self.username = username
-            else:
-                print("Incorrect username/password")
-        else:
-            print("Incorrect username/password")
+    #         if client_hash == server_hash:
+    #             self.userid = userid 
+    #             self.username = username
+    #         else:
+    #             print("Incorrect username/password")
+    #     else:
+    #         print("Incorrect username/password")
 
     def add_album(self, name, artist, year, one=False):
         if one == False:
@@ -255,7 +255,7 @@ class Database:
 
             self.update_genre_result(albumid, genre)
         else:
-            print(f"{genre} Genre doesn't exist")
+            pass
 
     def update_descriptor_result(self, albumid, descriptor):
         cmd = """

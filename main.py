@@ -120,8 +120,11 @@ def open_main_window():
                 search_elements.append(rate_button)
 
                 genre_bar = tk.Entry(root, width=30)
-                genre_bar.place(x=200, y=13)
+                genre_bar.place(x=685, y=55)
 
+                genre_button = ttk.Button(root, text="Propose", command=lambda: database.add_genre_vote(data[0], database.userid, genre_bar.get(), True))
+                genre_button.place(x=869, y=52)
+                
         elif table == "Artist":
             data = database.get_artist_data(query)
             # Returns artist, albums
@@ -136,8 +139,7 @@ def open_main_window():
                     album_label = tk.Label(text=f"{album[0]} [{album[1]}] ({album[2]} from {album[3]} ratings)", font=("Bahnschrift", 12))
                     album_label.place(x=10, y=y_value) # Places rating
                     search_elements.append(album_label)
-                    y_value += 30
-                    
+                    y_value += 30               
 
         elif table == "Genre":
             data = database.get_genre_data(query)
