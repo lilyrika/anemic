@@ -230,13 +230,15 @@ class Database:
         """
         self.cur.execute(cmd,(genre.lower(),))
 
-        if self.cur.fetchone() != None: # Checks if the genre is in the list
+        genre = self.cur.fetchone()[0]
+
+        if genre != None: # Checks if the genre is in the list
             cmd = """
             SELECT albumid, userid, genre, agreed
             FROM Genre_Votes
-            WHERE albumid = %s AND userid = %s AND genre = %s AND agreed = %s
+            WHERE albumid = %s AND userid = %s AND genre = %s
             """
-            self.cur.execute(cmd, (albumid, userid, genre, agreed))
+            self.cur.execute(cmd, (albumid, userid, genre))
 
             if self.cur.fetchone() == None: # Checks if the user's genre vote already exists
                 cmd = """
